@@ -1,0 +1,12 @@
+# Eclipse / Java Web build output
+build/
+bin/
+out/
+target/
+.settings/
+*.class
+*.log
+*.war
+
+# 历史遗留的嵌套副本，不作为仓库内容
+/tourist_attraction1/

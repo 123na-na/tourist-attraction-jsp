@@ -1,0 +1,80 @@
+@charset "UTF-8";
+
+	.list{
+		position:			relative;
+		width: 				900px;
+		height: 			620px;	
+		margin:				0 auto;
+		padding: 			10px 0;
+		background-color:	#fff;	
+	}
+	.list ul {
+		margin: 			0 10px;
+		padding: 			10px 0;
+	}
+	.list ul li {
+		float:				left;
+		width:				250px;
+		height: 			280px;
+		margin: 			10px 20px 10px 20px;
+		padding: 			0;
+		border: 			0px solid #ddd;
+		background-color: 	#fff;
+		list-style-type: 	none;			/*无列表符号*/
+		font-size:			small;	
+	}
+	.list ul li a{
+		text-decoration: 	none;
+	}
+	.list a:hover{
+	   	color: 				#f55;
+	}
+	
+	.imgDiv {
+		display:			flex;			/*弹性布局*/
+		justify-content:	center;			/*水平居中对齐*/
+		align-items:		center;			/*上下居中对齐*/
+		width:				260px; 
+		height:				200px; 
+		margin:				0; 
+		padding:			0;
+	}
+	.img { 
+		max-width:			248px;
+		max-height:			198px; 
+		margin-left:		-10px;
+		vertical-align:		middle;
+	}
+	.goodsName {
+		margin:				10px 0 -5px;
+		padding:			0 5px;
+		white-space: 		nowrap;			/*不换行*/
+		overflow: 			hidden;			/*隐藏超出部分*/
+		text-overflow: 		ellipsis;		/*不显示部分以三个点表示*/
+		line-height:		25px;  
+		font-weight:		bold; 
+		font-size:			18px;
+	}
+	.priceDiv {
+		color: 				#fd3f31; 
+		line-height:		40px; 
+		font-size:			15px;
+	}
+	.priceCode {
+		color:				#fd3f31;
+		font-size:			12px;
+	}
+	.price {
+		color:				#fd3f31;
+		font-size:			15px; 
+		font-weight:		bold;
+	}
+	.cart {
+		display:			inline-block;	/*行内块级元素*/
+		padding:			3px; 
+		background-color:	#fff8f8; 
+		border:				1px solid #eee; 
+		line-height:		12px;
+		font-size:			12px;
+	}	
+	

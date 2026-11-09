@@ -1,0 +1,167 @@
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS `tourism_system` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `tourism_system`;
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 先删除所有表（按依赖顺序）
+DROP TABLE IF EXISTS `shopping_cart`;
+DROP TABLE IF EXISTS `tb_goods`;
+DROP TABLE IF EXISTS `goods`;
+DROP TABLE IF EXISTS `tour_group`;
+DROP TABLE IF EXISTS `scenic_spot`;
+DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `tb_type`;
+DROP TABLE IF EXISTS `category`;
+
+-- 创建 category 表
+CREATE TABLE `category` (
+  `category_id` int NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `category_name` (`category_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建 scenic_spot 表
+CREATE TABLE `scenic_spot` (
+  `spot_id` int NOT NULL AUTO_INCREMENT,
+  `spot_name` varchar(100) NOT NULL,
+  `location_province` varchar(50) NOT NULL,
+  `location_city` varchar(50) NOT NULL,
+  `description` text,
+  `ticket_price` decimal(8,2) NOT NULL,
+  `opening_time` varchar(50) NOT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`spot_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建 tb_goods 表
+CREATE TABLE `tb_goods` (
+  `goodsId` int NOT NULL AUTO_INCREMENT,
+  `goodsName` varchar(100) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `guide` varchar(50) DEFAULT NULL,
+  `status` enum('计划中','进行中','已结束') NOT NULL DEFAULT '计划中',
+  `category_id` int DEFAULT NULL,
+  `location` varchar(255) NOT NULL,
+  `image` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`goodsId`),
+  KEY `category_id` (`category_id`),
+  CONSTRAINT `fk_tb_goods_category` FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建 user 表
+CREATE TABLE `user` (
+  `userid` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `role` enum('user','admin','group') NOT NULL DEFAULT 'user',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`userid`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `phone` (`phone`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建 tb_type 表
+CREATE TABLE `tb_type` (
+  `typeId` int NOT NULL AUTO_INCREMENT,
+  `typeName` varchar(45) NOT NULL,
+  PRIMARY KEY (`typeId`),
+  UNIQUE KEY `typeName_UNIQUE` (`typeName`)
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb3;
+
+-- 创建 shopping_cart 表（已包含用户姓名和商品姓名）
+CREATE TABLE `shopping_cart` (
+  `cart_item_id` int NOT NULL AUTO_INCREMENT,
+  `userid` int NOT NULL COMMENT '用户ID',
+  `user_name` varchar(50) NOT NULL COMMENT '用户姓名（冗余字段，避免关联查询）',
+  `goodsId` int NOT NULL COMMENT '商品ID',
+  `goods_name` varchar(100) NOT NULL COMMENT '商品名称（冗余字段，避免关联查询）',
+  `goods_price` decimal(10,2) NOT NULL COMMENT '商品单价（冗余字段，避免关联查询）',
+  `quantity` int NOT NULL DEFAULT 1 COMMENT '商品数量',
+  `selected_date` date DEFAULT NULL COMMENT '选择的旅游日期',
+  `travelers_count` int DEFAULT 1 COMMENT '出行人数',
+  `add_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '加入购物车时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`cart_item_id`),
+  UNIQUE KEY `unique_user_goods` (`userid`, `goodsId`) COMMENT '防止同一用户重复添加同一商品',
+  KEY `idx_user_id` (`userid`),
+  KEY `fk_cart_goods` (`goodsId`),
+  CONSTRAINT `fk_cart_user` FOREIGN KEY (`userid`) REFERENCES `user` (`userid`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cart_goods` FOREIGN KEY (`goodsId`) REFERENCES `tb_goods` (`goodsId`) ON DELETE CASCADE,
+  CONSTRAINT `chk_quantity` CHECK (`quantity` > 0),
+  CONSTRAINT `chk_travelers_count` CHECK (`travelers_count` > 0)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='购物车表';
+
+-- 插入数据
+INSERT INTO `category` VALUES (1, '休闲度假游');
+INSERT INTO `category` VALUES (2, '观光旅游');
+INSERT INTO `category` VALUES (3, '研学旅游');
+INSERT INTO `category` VALUES (4, '环球旅游');
+INSERT INTO `category` VALUES (5, '探险旅游');
+
+INSERT INTO `scenic_spot` VALUES (1, '故宫博物院', '北京市', '北京市', '明清两代皇宫，世界文化遗产，收藏有大量珍贵文物', 60.00, '8:30-17:00', 'https://example.com/forbidden_city.jpg');
+INSERT INTO `scenic_spot` VALUES (2, '长城', '北京市', '北京市', '万里长城重要段落，世界文化遗产，中国古代军事防御工程', 40.00, '7:30-18:00', 'https://example.com/great_wall.jpg');
+INSERT INTO `scenic_spot` VALUES (3, '西湖', '浙江省', '杭州市', '国家5A级景区，以"西湖十景"闻名，湖光山色优美', 80.00, '6:00-18:00', 'https://example.com/west_lake.jpg');
+INSERT INTO `scenic_spot` VALUES (4, '黄山风景区', '安徽省', '黄山市', '世界文化与自然双重遗产，奇松怪石云海温泉四绝', 230.00, '6:30-17:00', 'https://example.com/huangshan.jpg');
+INSERT INTO `scenic_spot` VALUES (5, '九寨沟', '四川省', '阿坝州', '世界自然遗产，以翠海、叠瀑、彩林、雪峰、藏情"五绝"著称', 220.00, '7:00-18:00', 'https://example.com/jiuzhaigou.jpg');
+INSERT INTO `scenic_spot` VALUES (6, '莫高窟', '甘肃省', '敦煌市', '世界文化遗产，佛教艺术宝库，保存有大量壁画和雕塑', 200.00, '8:30-18:00', 'https://example.com/mogao_caves.jpg');
+INSERT INTO `scenic_spot` VALUES (7, '兵马俑', '陕西省', '西安市', '世界文化遗产，秦始皇陵的陪葬坑，被誉为"世界第八大奇迹"', 120.00, '8:30-17:30', 'https://example.com/terracotta_army.jpg');
+INSERT INTO `scenic_spot` VALUES (8, '布达拉宫', '西藏自治区', '拉萨市', '世界文化遗产，藏传佛教圣地，具有独特的建筑风格', 100.00, '9:00-16:00', 'https://example.com/potala_palace.jpg');
+
+INSERT INTO `tb_goods` VALUES (1, '北京五日游', '2023-07-01', '2023-07-05', 2999.00, '王导游', '计划中', 3, '北京：Day1-天安门广场+故宫；Day2-八达岭长城；Day3-颐和园+圆明园；Day4-天坛+前门大街；Day5-798艺术区+返程', 'beijing.jpg');
+INSERT INTO `tb_goods` VALUES (2, '东京七日游', '2023-09-15', '2023-09-21', 5999.00, '张导游', '计划中', 4, '日本东京：Day1-浅草寺+晴空塔；Day2-东京迪士尼；Day3-秋叶原+银座；Day4-皇居+上野公园；Day5-台场海滨+返程', 'tokyo.jpg');
+INSERT INTO `tb_goods` VALUES (3, '海南三亚自由行5日', '2024-09-15', '2024-09-20', 2800.00, '王导游', '进行中', 1, '海南三亚：Day1-亚龙湾；Day2-天涯海角；Day3-南山寺；Day4-蜈支洲岛；Day5-大小洞天', 'sanya.jpg');
+INSERT INTO `tb_goods` VALUES (4, '西安古城文化3日游', '2024-10-05', '2024-10-08', 1500.00, '刘伟', '进行中', 2, '陕西西安：Day1-兵马俑；Day2-华清池；Day3-大雁塔+古城墙；Day4-回民街美食体验', 'xian.jpg');
+INSERT INTO `tb_goods` VALUES (5, '张家界玻璃栈道4日探险', '2024-11-20', '2024-11-24', 2100.00, '王导游', '已结束', 5, '湖南张家界：Day1-天门山玻璃栈道；Day2-袁家界+百龙天梯；Day3-金鞭溪；Day4-黄石寨', 'zhangjiajie.jpg');
+INSERT INTO `tb_goods` VALUES (6, '成都大熊猫基地2日亲子游', '2024-12-10', '2024-12-12', 800.00, '赵欣', '进行中', 3, '四川成都：Day1-成都大熊猫繁育研究基地；Day2-宽窄巷子+锦里古街；Day3-都江堰水利工程', 'chengdu.jpg');
+INSERT INTO `tb_goods` VALUES (7, '内蒙古呼伦贝尔草原5日游', '2025-01-05', '2025-01-10', 3800.00, '孙强', '进行中', 1, '内蒙古呼伦贝尔：Day1-呼伦贝尔大草原；Day2-满洲里国门；Day3-额尔古纳湿地；Day4-莫日格勒河；Day5-敖鲁古雅驯鹿部落', 'hulunbeier.jpg');
+INSERT INTO `tb_goods` VALUES (8, '桂林漓江竹筏3日游', '2025-02-14', '2025-02-17', 1600.00, '王导游', '计划中', 2, '广西桂林：Day1-漓江竹筏漂流；Day2-象鼻山+两江四湖；Day3-阳朔西街+遇龙河', 'guilin.jpg');
+INSERT INTO `tb_goods` VALUES (9, '北京故宫长城4日经典游', '2025-03-08', '2025-03-12', 2400.00, '吴刚', '已结束', 3, '北京：Day1-故宫博物院；Day2-八达岭长城；Day3-颐和园；Day4-天坛+前门大街', 'beijing_classic.jpg');
+INSERT INTO `tb_goods` VALUES (10, '厦门鼓浪屿3日休闲游', '2025-04-18', '2025-04-21', 1200.00, '王导游', '进行中', 1, '福建厦门：Day1-鼓浪屿；Day2-南普陀寺+厦门大学；Day3-环岛路骑行；Day4-曾厝垵文创村', 'xiamen.jpg');
+INSERT INTO `tb_goods` VALUES (11, '云南丽江7日深度游', '2024-07-10', '2024-07-17', 3200.00, '张明', '已结束', 1, '云南丽江：Day1-丽江古城；Day2-玉龙雪山；Day3-束河古镇；Day4-拉市海；Day5-泸沽湖；Day6-虎跳峡；Day7-黑龙潭', 'lijiang.jpg');
+INSERT INTO `tb_goods` VALUES (12, '西藏林芝桃花节5日游', '2024-08-01', '2024-08-06', 4500.00, '王导游', '进行中', 2, '西藏林芝：Day1-布达拉宫；Day2-巴松措；Day3-雅鲁藏布大峡谷；Day4-南迦巴瓦峰；Day5-桃花沟', 'linzhi.jpg');
+
+INSERT INTO `user` VALUES (1, 'zhangsan', '1', 'zhangsan@example.com', '13800138000', 'user', '2025-12-16 23:51:17');
+INSERT INTO `user` VALUES (2, 'lisi', '1', 'lisi@example.com', '13900139000', 'user', '2025-12-16 23:51:17');
+INSERT INTO `user` VALUES (3, 'admin', '1', 'admin@example.com', '13700137000', 'admin', '2025-12-16 23:51:17');
+INSERT INTO `user` VALUES (4, '王导游', '1', 'tour@ctrip.com', '13400134001', 'group', '2024-03-22 09:00:00');
+INSERT INTO `user` VALUES (5, '王芳', '1', 'wangfang@example.com', '13800138010', 'user', '2024-03-29 13:20:00');
+INSERT INTO `user` VALUES (6, '赵刚', '1', 'zhaogang@example.com', '13800138011', 'user', '2024-03-30 15:40:00');
+INSERT INTO `user` VALUES (7, '周敏', '1', 'zhoumin@example.com', '13800138012', 'user', '2024-03-31 08:50:00');
+INSERT INTO `user` VALUES (8, '吴磊', '1', 'wulei@example.com', '13800138013', 'user', '2024-04-01 12:15:00');
+INSERT INTO `user` VALUES (9, '郑洁', '1', 'zhengjie@example.com', '13800138014', 'user', '2024-04-02 17:30:00');
+INSERT INTO `user` VALUES (10, '刘明', '1', 'liuming@example.com', '13800138015', 'user', '2024-04-03 10:00:00');
+INSERT INTO `user` VALUES (11, '陈静', '1', 'chenjing@example.com', '13800138016', 'user', '2024-04-04 14:20:00');
+INSERT INTO `user` VALUES (12, '张磊', '1', 'zhanglei@example.com', '13800138017', 'user', '2024-04-05 09:45:00');
+INSERT INTO `user` VALUES (13, '李鹏', '1', 'lipeng@example.com', '13800138018', 'user', '2024-04-06 16:10:00');
+INSERT INTO `user` VALUES (14, '孙丽', '1', 'sunli@example.com', '13800138019', 'user', '2024-04-07 11:30:00');
+INSERT INTO `user` VALUES (16, '刘强', '1', 'liuqiang@example.com', '13800138005', 'user', '2024-03-24 09:20:00');
+INSERT INTO `user` VALUES (17, '陈伟', '1', 'chenwei@example.com', '13800138006', 'user', '2024-03-25 14:35:00');
+INSERT INTO `user` VALUES (18, '张华', '1', 'zhanghua@example.com', '13800138007', 'user', '2024-03-26 11:10:00');
+INSERT INTO `user` VALUES (19, '李娜', '1', 'lina@example.com', '13800138008', 'user', '2024-03-27 16:45:00');
+INSERT INTO `user` VALUES (20, '孙宁', '1', 'sunning@example.com', '13800138009', 'user', '2024-03-28 10:30:00');
+
+INSERT INTO `tb_type` VALUES (1,'普通用户');
+INSERT INTO `tb_type` VALUES (2,'旅游团');
+
+-- 插入购物车示例数据（只使用普通用户）
+INSERT INTO `shopping_cart` 
+(`userid`, `user_name`, `goodsId`, `goods_name`, `goods_price`, `quantity`, `selected_date`, `travelers_count`) VALUES
+(1, 'zhangsan', 1, '北京五日游', 2999.00, 1, '2024-12-20', 2),     -- 用户zhangsan选择了北京五日游
+(1, 'zhangsan', 3, '海南三亚自由行5日', 2800.00, 1, '2024-12-25', 1), -- 用户zhangsan选择了海南三亚游
+(2, 'lisi', 2, '东京七日游', 5999.00, 1, '2025-01-10', 3),        -- 用户lisi选择了东京七日游
+(5, '王芳', 4, '西安古城文化3日游', 1500.00, 2, '2024-12-15', 1),   -- 用户王芳选择了西安古城游
+(6, '赵刚', 6, '成都大熊猫基地2日亲子游', 800.00, 1, '2024-12-10', 2), -- 用户赵刚选择了成都亲子游
+(7, '周敏', 7, '内蒙古呼伦贝尔草原5日游', 3800.00, 1, '2025-01-05', 1), -- 用户周敏选择了呼伦贝尔游
+(8, '吴磊', 8, '桂林漓江竹筏3日游', 1600.00, 1, '2025-02-14', 2),   -- 用户吴磊选择了桂林游
+(9, '郑洁', 10, '厦门鼓浪屿3日休闲游', 1200.00, 1, '2025-04-18', 1), -- 用户郑洁选择了厦门游
+(10, '刘明', 12, '西藏林芝桃花节5日游', 4500.00, 1, '2024-08-01', 1); -- 用户刘明选择了西藏游
+
+SET FOREIGN_KEY_CHECKS = 1;
